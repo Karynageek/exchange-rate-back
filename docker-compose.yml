@@ -1,0 +1,72 @@
+# For more information: https://laravel.com/docs/sail
+version: '3'
+services:
+  api.exchange-rate:
+    build:
+      context: ./vendor/laravel/sail/runtimes/8.1
+      dockerfile: Dockerfile
+      args:
+        WWWGROUP: '${WWWGROUP}'
+    image: sail-8.1/app
+    container_name: api.exchange-rate
+    hostname: api.exchange-rate.test
+    networks:
+      exchange-rate:
+        aliases:
+          - api.exchange-rate.test
+    ports:
+      - '8080:80'
+    environment:
+      WWWUSER: '${WWWUSER}'
+      LARAVEL_SAIL: 1
+    volumes:
+      - '.:/var/www/html'
+    depends_on:
+      - db.exchange-rate
+      - db.test.exchange-rate
+  db.exchange-rate:
+    image: 'mysql:8'
+    container_name: db.exchange-rate
+    hostname: db.exchange-rate.test
+    networks:
+      exchange-rate:
+        aliases:
+          - db.exchange-rate.test
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    volumes:
+      - 'db.exchange-rate:/var/lib/mysql'
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping" ]
+  db.test.exchange-rate:
+    image: 'mysql:8'
+    container_name: db.test.exchange-rate
+    hostname: db.test.exchange-rate.test
+    networks:
+      exchange-rate:
+        aliases:
+          - db.test.exchange-rate.test
+    ports:
+      - '33060:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    volumes:
+      - 'db.test.exchange-rate:/var/lib/mysql'
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping" ]
+networks:
+  exchange-rate:
+    driver: bridge
+volumes:
+  db.exchange-rate:
+    driver: local
+  db.test.exchange-rate:
+    driver: local
